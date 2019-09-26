@@ -66,27 +66,178 @@ One note before you delve into your tasks: for each endpoint you are expected to
 8. Create a POST endpoint to get questions to play the quiz. This endpoint should take category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions. 
 9. Create error handlers for all expected errors including 400, 404, 422 and 500. 
 
-REVIEW_COMMENT
+
+## API Reference
+### Getting started
+* Authentication: This version of the application does not require authentication or API keys.
+
+### Error handling
+Errors are returned as JSON objects in the following format:
+
 ```
-This README is missing documentation of your endpoints. Below is an example for your endpoint to get all categories. Please use it as a reference for creating your documentation and resubmit your code. 
+{
+    "error": 404,
+    "message": "Not found",
+    "success": false
+}
+```
 
-Endpoints
-GET '/categories'
-GET ...
-POST ...
-DELETE ...
+### Endpoints
 
-GET '/categories'
-- Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
-- Request Arguments: None
-- Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs. 
+#### GET /categories
+* General
+    - Fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
+    - Request Arguments: None
+    - Returns: An object with a single key, categories, that contains a object of id: category_string key:value pairs.
+* Sample: `curl http://localhost:5000/categories`
+```
 {'1' : "Science",
 '2' : "Art",
 '3' : "Geography",
 '4' : "History",
 '5' : "Entertainment",
 '6' : "Sports"}
+```
 
+#### GET /questions
+* General
+    - Fetches an array of questions
+    - Request Arguments: page (optional)
+    - Returns: categories, current_category, questions, success, total_questions.
+* Sample: `curl http://localhost:5000/questions?page=2`
+```
+{
+    "categories": [
+        {
+            "id": 1,
+            "type": "Science"
+        },
+        {
+            "id": 2,
+            "type": "Art"
+        },
+        ...
+    ],
+    "current_category": {
+        "id": 1,
+        "type": "Science"
+    },
+    "questions": [
+        {
+            "answer": "Escher",
+            "category": 2,
+            "difficulty": 1,
+            "id": 16,
+            "question": "Which Dutch graphic artist–initials M C was a creator of optical illusions?"
+        },
+        {
+            "answer": "Mona Lisa",
+            "category": 2,
+            "difficulty": 3,
+            "id": 17,
+            "question": "La Giaconda is better known as what?"
+        },
+        ...
+    ],
+    "success": true,
+    "total_questions": 20
+}
+```
+
+#### POST /questions
+* General
+    - Creates a new question object in the database
+    - Request Arguments:
+        - `question`: string, represents the actual question
+        - `answer`: string, represents the answer to the question 
+        - `category`: int, category id 
+        - `difficulty`: int, represents the question difficulty
+
+    - Returns: `success`.
+* Sample: `curl -d '{	"question": "What is the fastest car in the world?", "answer": "Car XYZ", "category": 1, "difficulty": 2, }' -X POST http://localhost:5000/questions`
+```
+{
+    "success": true,
+    "message: "Question succesfully created!"
+}
+```
+
+#### DELETE /questions/{question_id}
+* General
+    - Deletes an existing question from the database
+    - Request Arguments: `question_id`
+    - Returns: `success`, `message`.
+* Sample: `curl -X DELETE http://localhost:5000/questions/25`
+```
+{
+    "message": "Question succesfully deleted",
+    "success": true
+}
+```
+
+#### GET /categories/{category_id}/questions
+* General
+    - Fetches an array of questions from a given category
+    - Request Arguments: category_id
+    - Returns: categories, current_category, questions, success, total_questions.
+* Sample: `curl http://localhost:5000/questions/25`
+```
+{
+    "categories": [
+        {
+            "id": 1,
+            "type": "Science"
+        },
+        {
+            "id": 2,
+            "type": "Art"
+        },
+        ...
+    ],
+    "current_category": {
+        "id": 1,
+        "type": "Science"
+    },
+    "questions": [
+        {
+            "answer": "Escher",
+            "category": 2,
+            "difficulty": 1,
+            "id": 16,
+            "question": "Which Dutch graphic artist–initials M C was a creator of optical illusions?"
+        },
+        {
+            "answer": "Mona Lisa",
+            "category": 2,
+            "difficulty": 3,
+            "id": 17,
+            "question": "La Giaconda is better known as what?"
+        },
+        ...
+    ],
+    "success": true,
+    "total_questions": 20
+}
+```
+#### POST /quizzes
+* General
+    - Fetches an array of questions from a given category
+    - Request Arguments:
+        - `quiz_category`: category object containing keys: id and type;
+        - `previous_questions`: array of question ids.
+    - Returns: categories, current_category, questions, success, total_questions.
+* Sample: `curl -d '{"quiz_category": {"id":1},"previous_questions": []}' -X POST http://localhost:5000/quizzes`
+```
+{
+    "question": {
+        "answer": "The Liver",
+        "category": 1,
+        "difficulty": 4,
+        "id": 20,
+        "question": "What is the heaviest organ in the human body?"
+    },
+    "success": true
+}
 ```
 
 

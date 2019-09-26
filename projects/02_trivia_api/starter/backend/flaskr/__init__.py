@@ -14,7 +14,7 @@ def create_app(test_config=None):
     app = Flask(__name__)
 
     # Set up CORS. Allow '*' for origins.
-    # CORS(app)
+    CORS(app)
 
     setup_db(app)
 
@@ -58,7 +58,7 @@ def create_app(test_config=None):
             })
 
         else:  # Question doesn't exist in the database, return 404
-            not_found('Question not found')
+            return not_found('Question not found')
 
     @app.route('/questions', methods=['GET', 'POST'])
     def get_questions():
@@ -68,11 +68,12 @@ def create_app(test_config=None):
 
         if request.method == 'POST':
             body = request.get_json()
+            search = body.get('searchTerm', None)
 
-            if body['searchTerm']:
-                # SEARCH QUESTION: containing 'searchTerm'
+            if search:
+                # SEARCH QUESTION: containing given search term
                 questions = Question.query.filter(
-                    Question.question.contains(body['searchTerm'])).all()
+                    Question.question.ilike('%{}%'.format(search))).all()
                 formatted_questions = [question.format()
                                        for question in questions]
                 return jsonify({
@@ -90,7 +91,7 @@ def create_app(test_config=None):
                     new_question.insert()
                     return jsonify({'success': True, })
                 except:
-                    unprocessable(422)
+                    return unprocessable(422)
 
         else:  # GET
             page = request.args.get('page', 1, type=int)
@@ -118,40 +119,54 @@ def create_app(test_config=None):
         '''
           GET endpoint to get questions based on category.
         '''
-        category = Category.query.filter(
-            Category.id == category_id).one_or_none()
-        if not category:
-            not_found('Category not found!')
+        try:
+            category = Category.query.filter(
+                Category.id == category_id).one_or_none()
+            if not category:
+                not_found('Category not found!')
 
-        questions = Question.query.filter(
-            Question.category == category.id).all()
-        formatted_questions = [question.format() for question in questions]
+            questions = Question.query.filter(
+                Question.category == category.id).all()
+            formatted_questions = [question.format() for question in questions]
 
-        # Get all Categories
-        categories = Category.query.all()
-        formatted_categories = [category.format() for category in categories]
+            # Get all Categories
+            categories = Category.query.all()
+            formatted_categories = [category.format()
+                                    for category in categories]
 
-        return jsonify({
-            'success': True,
-            'questions': formatted_questions,
-            'categories': formatted_categories,
-            'total_questions': len(formatted_questions),
-            'current_category': category.format()
-        })
+            return jsonify({
+                'success': True,
+                'questions': formatted_questions,
+                'categories': formatted_categories,
+                'total_questions': len(formatted_questions),
+                'current_category': category.format()
+            })
+        except:
+            return unprocessable(422)
 
-    @app.route('/quizzes', methods=['GET', 'POST'])
+    @app.route('/quizzes', methods=['POST'])
     def get_quizzes():
-        body = request.get_json()
-        given_category_id = body['quiz_category']['id']
-        previous_questions = body['previous_questions']
-        question = Question.query.filter(
-            Question.id.notin_(previous_questions),
-            Question.category == given_category_id).first()
+        try:
+            body = request.get_json()
+            given_category = body.get('quiz_category', None)
+            previous_questions = body.get('previous_questions', [])
+            if given_category['id'] != 0:
+                question = Question.query.filter(
+                    Question.id.notin_(previous_questions),
+                    Question.category == given_category['id']).first()
+                print(question)
+            else:
+                # ALL
+                question = Question.query.filter(
+                    Question.id.notin_(previous_questions)).first()
+                print(question)
 
-        return jsonify({
-            'success': True,
-            'question': question.format() if question else False,
-        })
+            return jsonify({
+                'success': True,
+                'question': question.format() if question else False,
+            })
+        except:
+            return unprocessable(422)
 
     @app.errorhandler(404)
     def not_found(error):
