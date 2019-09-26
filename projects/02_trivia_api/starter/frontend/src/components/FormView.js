@@ -4,22 +4,24 @@ import $ from 'jquery';
 import '../stylesheets/FormView.css';
 
 class FormView extends Component {
-  constructor(props){
+  constructor(props) {
     super();
     this.state = {
       question: "",
       answer: "",
       difficulty: 1,
       category: 1,
-      categories: {}
+      categories: []
     }
   }
 
-  componentDidMount(){
+  componentDidMount() {
     $.ajax({
       url: `/categories`, //TODO: update request URL
       type: "GET",
       success: (result) => {
+        console.log(result.categories);
+
         this.setState({ categories: result.categories })
         return;
       },
@@ -60,21 +62,25 @@ class FormView extends Component {
   }
 
   handleChange = (event) => {
-    this.setState({[event.target.name]: event.target.value})
+    this.setState({ [event.target.name]: event.target.value })
   }
 
   render() {
+    const categories = this.state.categories;
+    const categorySelectOptions = categories.map((category) =>
+        <option key={category.id} value={category.id}>{category.type}</option>
+    );
     return (
       <div id="add-form">
         <h2>Add a New Trivia Question</h2>
         <form className="form-view" id="add-question-form" onSubmit={this.submitQuestion}>
           <label>
             Question
-            <input type="text" name="question" onChange={this.handleChange}/>
+            <input type="text" name="question" onChange={this.handleChange} />
           </label>
           <label>
             Answer
-            <input type="text" name="answer" onChange={this.handleChange}/>
+            <input type="text" name="answer" onChange={this.handleChange} />
           </label>
           <label>
             Difficulty
@@ -89,12 +95,16 @@ class FormView extends Component {
           <label>
             Category
             <select name="category" onChange={this.handleChange}>
-              {Object.keys(this.state.categories).map(id => {
-                  return (
-                    <option key={id} value={id}>{this.state.categories[id]}</option>
-                  )
-                })}
+            {categorySelectOptions}
             </select>
+            {/* <select name="category" onChange={this.handleChange}>
+              {Object.keys(this.state.categories).map((item, id) => {
+                console.log(item, id);
+                return (
+                  <option key={id} value={id}>{this.state.categories[id]}</option>
+                )
+              })}
+            </select> */}
           </label>
           <input type="submit" className="button" value="Submit" />
         </form>
