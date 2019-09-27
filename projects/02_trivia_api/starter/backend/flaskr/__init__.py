@@ -90,7 +90,7 @@ def create_app(test_config=None):
                                             difficulty=body['difficulty'])
                     new_question.insert()
                     return jsonify({'success': True, })
-                except:
+                except:  # noqa
                     return unprocessable(422)
 
         else:  # GET
@@ -141,7 +141,7 @@ def create_app(test_config=None):
                 'total_questions': len(formatted_questions),
                 'current_category': category.format()
             })
-        except:
+        except:  # noqa
             return unprocessable(422)
 
     @app.route('/quizzes', methods=['POST'])
@@ -165,7 +165,7 @@ def create_app(test_config=None):
                 'success': True,
                 'question': question.format() if question else False,
             })
-        except:
+        except:  # noqa
             return unprocessable(422)
 
     @app.errorhandler(404)
